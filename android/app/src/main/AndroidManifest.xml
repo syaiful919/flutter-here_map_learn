@@ -9,6 +9,10 @@
         android:name="io.flutter.app.FlutterApplication"
         android:label="here_ex"
         android:icon="@mipmap/ic_launcher">
+
+        <meta-data android:name="com.here.sdk.access_key_id" android:value="3UTGsHS1UwWfn2lrxFyw7w"/>
+        <meta-data android:name="com.here.sdk.access_key_secret" android:value="cEoAO6o5sPuzgOgz0vswtUXmgG4qb5VsUHUQlGoYgVRHvX465zBrY896gxrQITAznsnqqNtD-c0uOjx5U5CrSg"/>
+
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
