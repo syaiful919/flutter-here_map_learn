@@ -7,6 +7,6 @@ import 'package:here_ex/ui/pages/map/examples/marker_map.dart';
 class MapPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MarkerMap();
+    return CameraMap();
   }
 }

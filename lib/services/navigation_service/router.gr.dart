@@ -9,13 +9,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:here_ex/ui/pages/home/home_page.dart';
 import 'package:here_ex/ui/pages/map/map_page.dart';
+import 'package:here_ex/ui/pages/pin_location/pin_location_page.dart';
 
 abstract class Routes {
   static const homePage = '/';
   static const mapPage = '/map-page';
+  static const pinLocationPage = '/pin-location-page';
   static const all = {
     homePage,
     mapPage,
+    pinLocationPage,
   };
 }
 
@@ -38,6 +41,11 @@ class Router extends RouterBase {
       case Routes.mapPage:
         return MaterialPageRoute<dynamic>(
           builder: (context) => MapPage(),
+          settings: settings,
+        );
+      case Routes.pinLocationPage:
+        return MaterialPageRoute<dynamic>(
+          builder: (context) => PinLocationPage(),
           settings: settings,
         );
       default:

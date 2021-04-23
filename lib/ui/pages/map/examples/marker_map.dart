@@ -18,6 +18,7 @@ class _MarkerMapState extends State<MarkerMap> {
   BuildContext _context;
 
   MapMarkerExample _mapMarkerExample;
+  GeoCoordinates _coordinatesAtCenter;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +30,22 @@ class _MarkerMapState extends State<MarkerMap> {
       ),
       body: Stack(
         children: [
-          HereMap(onMapCreated: _onMapCreated),
+          Column(
+            children: [
+              Expanded(flex: 8, child: HereMap(onMapCreated: _onMapCreated)),
+              Expanded(
+                flex: 4,
+                child: Container(
+                  color: Colors.white,
+                  alignment: Alignment.center,
+                  child: _coordinatesAtCenter == null
+                      ? Container()
+                      : Text(
+                          "${_coordinatesAtCenter.latitude}, ${_coordinatesAtCenter.longitude}"),
+                ),
+              )
+            ],
+          ),
           Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
@@ -72,7 +88,10 @@ class _MarkerMapState extends State<MarkerMap> {
   }
 
   void _centeredMapMarkersButtonClicked() {
-    _mapMarkerExample.showCenteredMapMarkers();
+    GeoCoordinates coor = _mapMarkerExample.showCenteredMapMarkers();
+    setState(() {
+      _coordinatesAtCenter = coor;
+    });
   }
 
   void _flatMapMarkersButtonClicked() {
@@ -172,17 +191,20 @@ class MapMarkerExample {
     _addPOIMapMarker(geoCoordinates, 1);
   }
 
-  void showCenteredMapMarkers() {
+  GeoCoordinates showCenteredMapMarkers() {
     _unTiltMap();
 
-    GeoCoordinates geoCoordinates =
-        _createRandomGeoCoordinatesAroundMapCenter();
+    GeoCoordinates geoCoordinates = _createGeoCoordinatesAtMapCenter();
 
     // Centered on location.
-    _addPhotoMapMarker(geoCoordinates, 0);
+    // _addPhotoMapMarker(geoCoordinates, 0);
 
     // Centered on location. Shown above the photo marker to indicate the location.
-    _addCircleMapMarker(geoCoordinates, 1);
+    // _addCircleMapMarker(geoCoordinates, 1);
+
+    _addPOIMapMarker(geoCoordinates, 1);
+
+    return geoCoordinates;
   }
 
   void showFlatMapMarkers() {
@@ -382,6 +404,20 @@ class MapMarkerExample {
     double lon = centerGeoCoordinates.longitude;
     return GeoCoordinates(
         _getRandom(lat - 0.02, lat + 0.02), _getRandom(lon - 0.02, lon + 0.02));
+  }
+
+  _createGeoCoordinatesAtMapCenter() {
+    GeoCoordinates centerGeoCoordinates =
+        _hereMapController.viewToGeoCoordinates(Point2D(
+            _hereMapController.viewportSize.width / 2,
+            _hereMapController.viewportSize.height / 2));
+    if (centerGeoCoordinates == null) {
+      // Should never happen for center coordinates.
+      throw Exception("CenterGeoCoordinates are null");
+    }
+    double lat = centerGeoCoordinates.latitude;
+    double lon = centerGeoCoordinates.longitude;
+    return GeoCoordinates(lat, lon);
   }
 
   double _getRandom(double min, double max) {

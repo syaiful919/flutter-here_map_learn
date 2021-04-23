@@ -64,6 +64,14 @@ class CameraExample {
     _hereMapController.camera
         .lookAtPointWithDistance(mapCenter, distanceToEarthInMeters);
     _setNewMapCircle(mapCenter);
+
+    MapCameraObserver observer =
+        MapCameraObserver.fromLambdas(lambda_onCameraUpdated: (val) {
+      print(
+          "${val.targetCoordinates.latitude},${val.targetCoordinates.longitude}");
+    });
+
+    _hereMapController.camera.addObserver(observer);
   }
 
   void move() {

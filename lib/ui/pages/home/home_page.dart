@@ -17,7 +17,7 @@ class _HomePageState extends State<HomePage> {
       body: Center(
         child: FlatButton(
           onPressed: () {
-            navigationService.pushNamed(Routes.mapPage);
+            navigationService.pushNamed(Routes.pinLocationPage);
           },
           child: Text("Go to map"),
         ),
