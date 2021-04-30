@@ -10,15 +10,18 @@ import 'package:auto_route/auto_route.dart';
 import 'package:here_ex/ui/pages/home/home_page.dart';
 import 'package:here_ex/ui/pages/map/map_page.dart';
 import 'package:here_ex/ui/pages/pin_location/pin_location_page.dart';
+import 'package:here_ex/ui/pages/address_search/address_search_page.dart';
 
 abstract class Routes {
   static const homePage = '/';
   static const mapPage = '/map-page';
   static const pinLocationPage = '/pin-location-page';
+  static const addressSearchPage = '/address-search-page';
   static const all = {
     homePage,
     mapPage,
     pinLocationPage,
+    addressSearchPage,
   };
 }
 
@@ -46,6 +49,11 @@ class Router extends RouterBase {
       case Routes.pinLocationPage:
         return MaterialPageRoute<dynamic>(
           builder: (context) => PinLocationPage(),
+          settings: settings,
+        );
+      case Routes.addressSearchPage:
+        return MaterialPageRoute<dynamic>(
+          builder: (context) => AddressSearchPage(),
           settings: settings,
         );
       default:
