@@ -35,6 +35,7 @@ class Router extends RouterBase {
 
   @override
   Route<dynamic> onGenerateRoute(RouteSettings settings) {
+    final args = settings.arguments;
     switch (settings.name) {
       case Routes.homePage:
         return MaterialPageRoute<dynamic>(
@@ -47,8 +48,14 @@ class Router extends RouterBase {
           settings: settings,
         );
       case Routes.pinLocationPage:
+        if (hasInvalidArgs<PinLocationPageArguments>(args)) {
+          return misTypedArgsRoute<PinLocationPageArguments>(args);
+        }
+        final typedArgs =
+            args as PinLocationPageArguments ?? PinLocationPageArguments();
         return MaterialPageRoute<dynamic>(
-          builder: (context) => PinLocationPage(),
+          builder: (context) => PinLocationPage(
+              key: typedArgs.key, initialLoc: typedArgs.initialLoc),
           settings: settings,
         );
       case Routes.addressSearchPage:
@@ -60,4 +67,15 @@ class Router extends RouterBase {
         return unknownRoutePage(settings.name);
     }
   }
+}
+
+// *************************************************************************
+// Arguments holder classes
+// **************************************************************************
+
+//PinLocationPage arguments holder class
+class PinLocationPageArguments {
+  final Key key;
+  final SearchSuggestionModel initialLoc;
+  PinLocationPageArguments({this.key, this.initialLoc});
 }

@@ -1,38 +1,61 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:here_ex/ui/pages/address_search/address_search_page.dart';
 import 'package:here_sdk/core.dart';
+import 'package:here_sdk/core.errors.dart';
 import 'package:here_sdk/gestures.dart';
 import 'package:here_sdk/mapview.dart';
+import 'package:here_sdk/search.dart';
 
 class PinLocationPage extends StatefulWidget {
+  final SearchSuggestionModel initialLoc;
+
+  const PinLocationPage({
+    Key key,
+    this.initialLoc,
+  }) : super(key: key);
   @override
   _PinLocationPageState createState() => _PinLocationPageState();
 }
 
 class _PinLocationPageState extends State<PinLocationPage> {
-  GeoCoordinates _coordinatesAtCenter;
-  GeoCoordinates _currentCoordinate;
+  SearchEngine _searchEngine;
+
+  SearchSuggestionModel _currentLocation;
   HereMapController _mapController;
+  SearchSuggestionModel _locationAtCenter;
 
   @override
   void initState() {
     super.initState();
+    initSeacrhEngine();
     getCurrentCoordinate();
   }
 
-  void getCurrentCoordinate() {
-    _currentCoordinate =
+  void initSeacrhEngine() {
+    try {
+      _searchEngine = new SearchEngine();
+    } on InstantiationException {
+      print(">>> Initialization of SearchEngine failed.");
+    }
+  }
+
+  void getCurrentCoordinate() async {
+    GeoCoordinates _currentCoordinates =
         GeoCoordinates(-6.3052470084405545, 106.75474866898688);
+    SearchSuggestionModel _loc = await _reverseGeocoding(_currentCoordinates);
+
+    setState(() {
+      _currentLocation = _loc;
+    });
   }
 
   void goToCurrentLocation() {
-    setState(() {
-      _coordinatesAtCenter =
-          GeoCoordinates(-6.3052470084405545, 106.75474866898688);
-    });
+    setState(() {});
+
     _mapController.camera.flyToWithOptions(
-        _coordinatesAtCenter, MapCameraFlyToOptions.withDefaults());
+        _locationAtCenter.coordinates, MapCameraFlyToOptions.withDefaults());
   }
 
   @override
@@ -68,10 +91,16 @@ class _PinLocationPageState extends State<PinLocationPage> {
                 child: Container(
                   color: Colors.white,
                   alignment: Alignment.center,
-                  child: _coordinatesAtCenter == null
+                  child: _locationAtCenter == null
                       ? Container()
-                      : Text(
-                          "${_coordinatesAtCenter.latitude}, ${_coordinatesAtCenter.longitude}"),
+                      : Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(_locationAtCenter.title),
+                            Text(
+                                "${_locationAtCenter.coordinates.latitude}, ${_locationAtCenter.coordinates.longitude}"),
+                          ],
+                        ),
                 ),
               )
             ],
@@ -92,22 +121,66 @@ class _PinLocationPageState extends State<PinLocationPage> {
       }
 
       const double distanceToEarthInMeters = 2000;
-      _mapController.camera
-          .lookAtPointWithDistance(_currentCoordinate, distanceToEarthInMeters);
+      _mapController.camera.lookAtPointWithDistance(
+          widget.initialLoc.coordinates ?? _currentLocation,
+          distanceToEarthInMeters);
 
       setState(() {
-        _coordinatesAtCenter = _currentCoordinate;
+        _locationAtCenter = widget.initialLoc ?? _currentLocation;
       });
     });
 
     MapCameraObserver observer =
         MapCameraObserver.fromLambdas(lambda_onCameraUpdated: (val) {
-      setState(() {
-        _coordinatesAtCenter = val.targetCoordinates;
-      });
+      _getAddressForCoordinates(val.targetCoordinates);
     });
 
     _mapController.camera.addObserver(observer);
+  }
+
+  Future<void> _getAddressForCoordinates(GeoCoordinates geoCoordinates) async {
+    int maxItems = 1;
+    SearchOptions reverseGeocodingOptions =
+        new SearchOptions(LanguageCode.idId, maxItems);
+
+    _searchEngine.searchByCoordinates(geoCoordinates, reverseGeocodingOptions,
+        (SearchError searchError, List<Place> list) async {
+      if (searchError != null) {
+        print(">>> Reverse geocoding Error: $searchError ");
+        return null;
+      }
+
+      // If error is null, list is guaranteed to be not empty.
+      SearchSuggestionModel _loc = SearchSuggestionModel(
+          coordinates: list.first.geoCoordinates,
+          title: list.first.address.addressText);
+
+      setState(() {
+        _locationAtCenter = _loc;
+      });
+    });
+  }
+
+  Future<SearchSuggestionModel> _reverseGeocoding(geoCoordinates) {
+    int maxItems = 1;
+    SearchOptions reverseGeocodingOptions =
+        new SearchOptions(LanguageCode.idId, maxItems);
+
+    _searchEngine.searchByCoordinates(geoCoordinates, reverseGeocodingOptions,
+        (SearchError searchError, List<Place> list) async {
+      if (searchError != null) {
+        print(">>> Reverse geocoding Error: $searchError ");
+        return null;
+      }
+
+      // If error is null, list is guaranteed to be not empty.
+
+      print(">>> ${list.first.address.addressText}, ");
+
+      return SearchSuggestionModel(
+          coordinates: list.first.geoCoordinates,
+          title: list.first.address.addressText);
+    });
   }
 
   @override

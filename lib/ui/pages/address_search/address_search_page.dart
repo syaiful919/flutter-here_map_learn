@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:here_ex/locator/locator.dart';
+import 'package:here_ex/services/navigation_service/navigation_service.dart';
+import 'package:here_ex/services/navigation_service/router.gr.dart';
 import 'package:here_sdk/core.dart';
 import 'package:here_sdk/core.errors.dart';
 import 'package:here_sdk/search.dart';
@@ -7,10 +10,7 @@ class SearchSuggestionModel {
   GeoCoordinates coordinates;
   String title;
 
-  SearchSuggestionModel({
-    this.title,
-    this.coordinates,
-  });
+  SearchSuggestionModel({this.title, this.coordinates});
 }
 
 class AddressSearchPage extends StatefulWidget {
@@ -19,6 +19,8 @@ class AddressSearchPage extends StatefulWidget {
 }
 
 class _AddressSearchPageState extends State<AddressSearchPage> {
+  NavigationService navigationService = locator<NavigationService>();
+
   TextEditingController _searchCon = TextEditingController();
   List<SearchSuggestionModel> _searchResult = [];
 
@@ -64,6 +66,14 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
             if (_searchResult.isNotEmpty)
               ListView.builder(
                 itemBuilder: (_, i) => _SearchItem(
+                  onTap: () {
+                    navigationService.pushNamed(
+                      Routes.pinLocationPage,
+                      arguments: PinLocationPageArguments(
+                        initialLoc: _searchResult[i],
+                      ),
+                    );
+                  },
                   suggestion: _searchResult[i],
                 ),
                 itemCount: _searchResult.length,
@@ -116,16 +126,21 @@ class _AddressSearchPageState extends State<AddressSearchPage> {
 
 class _SearchItem extends StatelessWidget {
   final SearchSuggestionModel suggestion;
+  final VoidCallback onTap;
   const _SearchItem({
     Key key,
     this.suggestion,
+    this.onTap,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(8),
-      child: Text(suggestion.title),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(8),
+        child: Text(suggestion.title),
+      ),
     );
   }
 }
